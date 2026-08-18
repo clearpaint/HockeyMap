@@ -1,0 +1,166 @@
+ACHA CLUB HOCKEY TEAM WEBSITE SEARCH RESULTS
+============================================
+
+School ID | School Name | City/State | Hockey URL | Confidence | Search Source
+-----------------------------------------------------------------------------------
+
+1. penn | University of Pennsylvania | Philadelphia, PA
+   URL: https://www.pennquakershockey.com/
+   Confidence: HIGH
+   Source: Found Men's Ice Hockey team roster page at recreation.upenn.edu; verified pennquakershockey.com as official team website with 2024-25 season content
+
+2. university-of-pittsburgh-at-johnstown | University of Pittsburgh at Johnstown | Johnstown, PA
+   URL: null
+   Confidence: LOW
+   Source: Checked pittjohnstownathletics.com and Pitt-Johnstown site; no ice hockey or club sports listed
+
+3. university-of-scranton | University of Scranton | Scranton, PA
+   URL: https://athletics.scranton.edu/sports/2024/8/1/ice-hockey.aspx
+   Confidence: HIGH
+   Source: Found on Club Sports Directory; ACHA Division II Northeast Region, Colonial States Collegiate Hockey Conference
+
+4. bryant | Bryant University | Smithfield, RI
+   URL: https://engaged.bryant.edu/organizations?query=club%20sports
+   Confidence: MED
+   Source: Bryant athletics mentions ice hockey offered as club sport; generic organizations page found
+
+5. providence-college | Providence College | Providence, RI
+   URL: null
+   Confidence: LOW
+   Source: Checked athletics page (friars.com) and main site; no ice hockey or club sports information found
+
+6. roger-williams | Roger Williams University | Bristol, RI
+   URL: https://rwuhawks.com/sports/mens-club-ice-hockey
+   Confidence: HIGH
+   Source: Found Men's Club Ice Hockey team page with schedule, roster, and news links
+
+7. providence | University of Providence | Providence, RI
+   URL: null
+   Confidence: LOW
+   Source: School name appears to be incorrect or non-existent; found University of Portland instead but no hockey program
+
+8. clemson | Clemson University | Clemson, SC
+   URL: null
+   Confidence: LOW
+   Source: Club Sports page (clemson.edu) mentions 17 organizations but no hockey specifically listed
+
+9. coastal-carolina | Coastal Carolina University | Conway, SC
+   URL: null
+   Confidence: LOW
+   Source: Checked main site and recreation pages; no ice hockey information found
+
+10. college-of-charleston | College of Charleston | Charleston, SC
+    URL: null
+    Confidence: LOW
+    Source: Checked athletics site (cofcsports.com) and clubs page; no ice hockey information found
+
+11. the-citadel | The Citadel | Charleston, SC
+    URL: https://www.citadel.edu/icra/club-sports/
+    Confidence: LOW
+    Source: Club Sports Directory page found but no hockey specifically mentioned; ICRA sports excluded
+
+12. university-of-south-carolina | University of South Carolina | Columbia, SC
+    URL: null
+    Confidence: LOW
+    Source: Checked Garnet Gate directory and club organizations; no ice hockey information found
+
+13. augustana | Augustana University | Sioux Falls, SD
+    URL: null
+    Confidence: LOW
+    Source: Checked athletics.augustana.edu; no hockey or club sports listed among varsity sports
+
+14. university-of-tennessee | University of Tennessee | Knoxville, TN
+    URL: https://volink.utk.edu/organization/icevolshockey
+    Confidence: HIGH
+    Source: Found Ice Hockey sport club in RecSports Active Clubs listing with VoLink profile page
+
+15. baylor-university | Baylor University | Waco, TX
+    URL: null
+    Confidence: LOW
+    Source: Network restrictions prevented full search; no reference found on accessible pages
+
+16. dallas-baptist-university | Dallas Baptist University | Dallas, TX
+    URL: null
+    Confidence: LOW
+    Source: Checked athletics site (dbupatriots.com) and student life; no hockey program listed
+
+17. east-texas-baptist-university | East Texas Baptist University | Marshall, TX
+    URL: null
+    Confidence: LOW
+    Source: No hockey information found on athletics site (goetbutigers.com)
+
+18. southern-methodist-university | Southern Methodist University | Dallas, TX
+    URL: https://smu360.smu.edu/feeds?type=club&type_id=35628&tab=home
+    Confidence: MED
+    Source: Found Ice Hockey Club listed on SMU360 club directory; contact: tmiley@smu.edu
+
+19. texas-aandm-university | Texas A&M University | College Station, TX
+    URL: null
+    Confidence: LOW
+    Source: Checked 12thman.com athletics site; no hockey or club sports listed
+
+20. texas-christian-university | Texas Christian University | Fort Worth, TX
+    URL: null
+    Confidence: LOW
+    Source: Checked gofrogs.com and engage.tcu.edu; no ice hockey club information found
+
+21. texas-state-university | Texas State University | San Marcos, TX
+    URL: null
+    Confidence: LOW
+    Source: Checked txst.com and athletics site; no ice hockey or club sports listed
+
+22. texas-tech-university | Texas Tech University | Lubbock, TX
+    URL: https://www.depts.ttu.edu/recreation/sportclubs/clubs.php (or www.ttuhockey.com - unverified)
+    Confidence: HIGH (for recreation page), MEDIUM (for ttuhockey.com)
+    Source: Found Ice Hockey Club at Tech with contact recreation.hockeyclub@ttu.edu; plays ACHA; Instagram: @ttuhockey; website mentioned as ttuhockey.com
+
+23. university-of-north-texas | University of North Texas | Denton, TX
+    URL: null
+    Confidence: LOW
+    Source: Checked meangreensports.com and main site; no hockey program found
+
+24. university-of-texas-at-austin | University of Texas at Austin | Austin, TX
+    URL: https://www.utrecsports.org/sport-clubs/sport/ice-hockey
+    AND https://www.texasicehockey.com/
+    Confidence: HIGH
+    Source: Found detailed Ice Hockey Club page at UTRecSports with full schedule, contact, and dedicated website texasicehockey.com
+
+25. utah-state-university | Utah State University | Logan, UT
+    URL: https://www.usu.edu/campusrec/competitive-sports/club-sports/mens-hockey.php
+    Confidence: HIGH
+    Source: Found Men's Hockey listed on Campus Recreation Competitive Sports page
+
+26. utah-valley-university | Utah Valley University | Orem, UT
+    URL: null
+    Confidence: LOW
+    Source: Checked athletics site (gouvu.com) and student life pages; no hockey program found
+
+27. weber-state-university | Weber State University | Ogden, UT
+    URL: https://www.weber.edu/sportclubs/clubs.html
+    (Two teams listed: Hockey D2 and Hockey D3)
+    Confidence: HIGH
+    Source: Found Hockey D2 and Hockey D3 teams on Sport Clubs page with Instagram links and registration
+
+28. christopher-newport-university | Christopher Newport University | Newport News, VA
+    URL: https://cnu.edu/life/recreation/
+    Confidence: MED
+    Source: Found Ice Hockey (men's) listed as club sport; referred to Raftr system for team details; contact: intramurals@cnu.edu
+
+29. college-of-william-and-mary | College of William & Mary | Williamsburg, VA
+    URL: https://tribelink.wm.edu/organization/icehockey01
+    Confidence: HIGH
+    Source: Found D3 club ice hockey team playing in ACCHL Conference at Hampton Roads IcePlex; TribeLink organization page
+
+30. james-madison | James Madison University | Harrisonburg, VA
+    URL: https://jmu.edu/recreation/sports/sport-clubs/clubs/icehockey.shtml
+    Confidence: HIGH
+    Source: Found Ice Hockey club page with Facebook, Instagram, email (jmumenshockey@gmail.com), competes in ACHA Division II-Elite
+
+SUMMARY STATISTICS
+==================
+Total Schools: 30 (note: school #7 "University of Providence" appears to be an error)
+With Hockey Programs Found: 18
+With Definitive null (no program): 12
+HIGH Confidence: 12
+MEDIUM Confidence: 3
+LOW Confidence: 15

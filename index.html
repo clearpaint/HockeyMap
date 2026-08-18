@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>College Hockey Map — NCAA D1 &amp; D3 Programs</title>
+<meta name="description" content="Every NCAA Division I and Division III college ice hockey program on one map, with ACHA club programs available as an overlay. Filter by conference, region, and field of study, then go straight to the school.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anybody:wght@400;700;800&family=Inter+Tight:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+<a class="skip" href="#results">Skip to programs</a>
+
+<header class="masthead">
+  <div class="masthead__brand">
+    <!-- Wordmark text is set per sport by js/main.js. -->
+    <div class="wordmark" id="wordmark">
+      <span class="wordmark__line" id="wordmark-line-1">College Hockey</span>
+      <span class="wordmark__line wordmark__line--alt" id="wordmark-line-2">Map</span>
+    </div>
+    <div class="segmented segmented--sport" role="group" aria-label="Sport">
+      <label class="seg">
+        <input type="radio" name="sport" value="hockey" checked>
+        <span>Hockey</span>
+      </label>
+      <label class="seg">
+        <input type="radio" name="sport" value="lacrosse">
+        <span>Lacrosse</span>
+      </label>
+    </div>
+  </div>
+  <!-- Sub-line text is set per sport by js/main.js. -->
+  <p class="masthead__sub" id="masthead-sub"></p>
+  <!-- The Showing item is fixed; per-division items are built by js/main.js from
+       the active sport, and the ACHA item shows only when that overlay is on. -->
+  <dl class="tally" id="tally">
+    <div class="tally__item">
+      <dt>Showing</dt>
+      <dd><span id="tally-shown">—</span><span class="tally__of"></span></dd>
+    </div>
+    <div class="tally__item tally__item--acha" id="tally-acha-item" hidden>
+      <dt>ACHA club</dt>
+      <dd id="tally-acha">—</dd>
+    </div>
+  </dl>
+</header>
+
+<main class="shell">
+
+  <!-- ── Filters ────────────────────────────────────────────────────────── -->
+  <aside class="rail" id="rail" aria-label="Filters and sorting">
+    <button class="rail__toggle" id="rail-toggle" aria-expanded="false" aria-controls="rail-body">
+      <span>Filters</span>
+      <span class="rail__toggle-count" id="rail-toggle-count"></span>
+    </button>
+
+    <div class="rail__body" id="rail-body">
+      <form id="filters">
+        <fieldset class="group group--gender">
+          <legend class="eyebrow">Program</legend>
+          <div class="segmented" role="group" aria-label="Men's or women's programs">
+            <label class="seg">
+              <input type="radio" name="gender" value="men" checked>
+              <span>Men's</span>
+            </label>
+            <label class="seg">
+              <input type="radio" name="gender" value="women">
+              <span>Women's</span>
+            </label>
+            <label class="seg">
+              <input type="radio" name="gender" value="both">
+              <span>Both</span>
+            </label>
+          </div>
+          <p class="group__note" id="gender-note" hidden></p>
+        </fieldset>
+
+        <!-- League and division pills are built per sport by js/main.js: hockey
+             shows NCAA + ACHA and D1/D3; lacrosse shows NCAA-only (this group is
+             hidden) and D1/D2/D3. -->
+        <fieldset class="group" id="league-group">
+          <legend class="eyebrow">League</legend>
+          <div class="pills" id="group-league"></div>
+        </fieldset>
+
+        <fieldset class="group" id="group-division">
+          <legend class="eyebrow">Division (NCAA)</legend>
+          <div class="pills" id="group-division-pills"></div>
+        </fieldset>
+
+        <fieldset class="group">
+          <legend class="eyebrow">Region</legend>
+          <div class="checks" id="group-region"></div>
+        </fieldset>
+
+        <fieldset class="group">
+          <legend class="eyebrow">Conference</legend>
+          <div class="checks checks--scroll" id="group-conference"></div>
+        </fieldset>
+
+        <fieldset class="group">
+          <legend class="eyebrow">Field of study</legend>
+          <div class="chips" id="group-study"></div>
+        </fieldset>
+
+        <div class="group">
+          <label class="eyebrow" for="search">Find a school</label>
+          <input class="search" type="search" id="search" placeholder="Name, city, or state" autocomplete="off">
+        </div>
+
+        <fieldset class="group">
+          <legend class="eyebrow">Also show</legend>
+          <div class="checks">
+            <label class="check">
+              <input type="checkbox" name="extra" value="future">
+              <span class="check__label">Announced programs</span>
+              <span class="check__n" id="n-future"></span>
+            </label>
+            <label class="check">
+              <input type="checkbox" name="extra" value="unlisted">
+              <span class="check__label">Unverified / off-roster</span>
+              <span class="check__n" id="n-unlisted"></span>
+            </label>
+          </div>
+        </fieldset>
+
+        <button class="reset" type="reset" id="reset">Clear all filters</button>
+      </form>
+    </div>
+  </aside>
+
+  <!-- ── Map / list ─────────────────────────────────────────────────────── -->
+  <section class="stage" id="results" aria-label="Programs">
+    <div class="stage__bar">
+      <div class="views" role="tablist" aria-label="View">
+        <button role="tab" id="tab-map" aria-selected="true" aria-controls="view-map" class="view is-on">Map</button>
+        <button role="tab" id="tab-list" aria-selected="false" aria-controls="view-list" class="view">List</button>
+      </div>
+      <div class="stage__tools">
+        <label class="sort">
+          <span class="eyebrow">Sort</span>
+          <select id="sort">
+            <option value="name">School name</option>
+            <option value="state">State</option>
+            <option value="conference">Conference</option>
+            <option value="division">Division</option>
+            <option value="rank">National rank</option>
+            <option value="enrollment">Enrollment</option>
+          </select>
+        </label>
+        <button class="zoomreset" id="zoom-reset" hidden>Reset view</button>
+      </div>
+    </div>
+
+    <div class="view-panel" id="view-map" role="tabpanel" aria-labelledby="tab-map">
+      <div class="mapwrap" id="mapwrap">
+        <svg id="map" role="group" aria-label="Map of NCAA college hockey programs across the United States">
+          <defs>
+            <!-- Skate scratches: the ice remembers where it's been cut. -->
+            <pattern id="scratch" width="34" height="34" patternUnits="userSpaceOnUse" patternTransform="rotate(-24)">
+              <path d="M0 6h34M0 19h20M8 27h26" stroke="#0E1B2A" stroke-opacity=".05" stroke-width=".6" fill="none"/>
+            </pattern>
+          </defs>
+          <g id="layer-states"></g>
+          <g id="layer-marks"></g>
+        </svg>
+        <div id="leaflet" class="leafletwrap" hidden></div>
+        <p class="maphint" id="maphint">Scroll to zoom · drag to pan · click a state to fit it</p>
+        <p class="offline-note" id="offline-note" hidden>
+          Street map needs a connection — showing the offline map.
+        </p>
+      </div>
+    </div>
+
+    <div class="view-panel" id="view-list" role="tabpanel" aria-labelledby="tab-list" hidden>
+      <div class="tablewrap">
+        <table class="table" id="table">
+          <caption class="sr-only">NCAA hockey programs matching the current filters</caption>
+          <thead>
+            <tr>
+              <th scope="col"><button type="button" class="th-sort" data-sort="name">School</button></th>
+              <th scope="col"><button type="button" class="th-sort" data-sort="division">Div</button></th>
+              <th scope="col"><button type="button" class="th-sort" data-sort="conference">Conference</button></th>
+              <th scope="col"><button type="button" class="th-sort" data-sort="state">Location</button></th>
+              <th scope="col"><button type="button" class="th-sort" data-sort="rank">Rank</button></th>
+              <th scope="col"><button type="button" class="th-sort" data-sort="enrollment">Enrollment</button></th>
+              <th scope="col" class="th-plain">Known for</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <p class="empty" id="empty" hidden>
+      No programs match these filters. <button type="button" id="empty-reset">Clear them</button> to see every program.
+    </p>
+  </section>
+
+  <!-- ── Detail ─────────────────────────────────────────────────────────── -->
+  <aside class="detail" id="detail" aria-live="polite" aria-label="Selected school">
+    <div class="detail__idle" id="detail-idle">
+      <div class="faceoff-art" aria-hidden="true">
+        <svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="44" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="60" cy="60" r="6" fill="currentColor"/></svg>
+      </div>
+      <p class="detail__idle-copy">Click any program to see its conference, what the school is known for, and links to the athletics site.</p>
+    </div>
+    <div class="detail__card" id="detail-card" hidden></div>
+  </aside>
+
+</main>
+
+<footer class="foot">
+  <p id="foot-note"></p>
+</footer>
+
+<!-- Leaflet loads before the app module so main.js can detect it synchronously.
+     If these fail (offline), the app falls back to the built-in offline map. -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
