@@ -1,0 +1,821 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   College Hockey Map
+   Everything derives from rink markings: ice surface, dasher-board navy,
+   the blue line for D1 and the red line for D3.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --ice: #edf2f7;
+  --ice-deep: #dde7f0;
+  --board: #0e1b2a;
+  --board-soft: #16283c;
+  --blueline: #1f4fa8;
+  --redline: #c8102e;
+  --achaline: #1a8f5e;
+  /* Lacrosse adds a third NCAA tier (D2) hockey never had — amber, clear of the
+     D1 blue / D3 red / ACHA green already in play. */
+  --d2line: #d98a1f;
+  --crease: #7fa8d9;
+  --frost: #9baec2;
+  --frost-dim: #c3d0dc;
+  --paper: #fbfcfd;
+
+  --display: "Anybody", "Arial Narrow", system-ui, sans-serif;
+  --body: "Inter Tight", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+
+  --rail-w: 236px;
+  --detail-w: 320px;
+  --gap: 18px;
+  --ease: cubic-bezier(.2, .7, .2, 1);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  font-family: var(--body);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--board);
+  background: var(--board);
+}
+
+button, input, select { font: inherit; color: inherit; }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0;
+  margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+}
+
+.skip {
+  position: absolute; left: 12px; top: -60px; z-index: 50;
+  background: var(--paper); color: var(--board);
+  padding: 10px 16px; border-radius: 2px; font-weight: 600;
+  transition: top .15s var(--ease);
+}
+.skip:focus { top: 12px; }
+
+/* ── Masthead ─────────────────────────────────────────────────────────────
+   The thesis: the wordmark is set in stacked arena-signage caps, stretched
+   wide the way a rink's end-board lettering is. */
+
+.masthead {
+  background: var(--board);
+  color: var(--paper);
+  padding: 30px var(--gap) 24px;
+  display: grid;
+  gap: 14px 40px;
+  grid-template-columns: minmax(0, auto) minmax(0, 1fr) auto;
+  align-items: end;
+  border-bottom: 1px solid rgba(155, 174, 194, .22);
+}
+
+.wordmark {
+  font-family: var(--display);
+  font-weight: 800;
+  font-stretch: 125%;
+  text-transform: uppercase;
+  letter-spacing: .01em;
+  line-height: .88;
+  font-size: clamp(30px, 4.6vw, 52px);
+  display: grid;
+}
+.wordmark__line--alt {
+  color: transparent;
+  -webkit-text-stroke: 1.2px var(--crease);
+  padding-left: .06em;
+}
+
+/* Wordmark + sport switcher share the masthead's first column, stacked. */
+.masthead__brand { display: grid; gap: 14px; justify-items: start; }
+
+/* Sport switcher: the same segmented control as the gender toggle, but sitting
+   on the dark masthead, so it gets its own darker track and lighter idle text. */
+.segmented--sport {
+  grid-template-columns: repeat(2, minmax(76px, 1fr));
+  background: rgba(155, 174, 194, .16);
+}
+.segmented--sport .seg span { color: var(--frost); font-size: 12px; }
+.segmented--sport .seg span:hover { color: #fff; }
+.segmented--sport .seg input:checked + span {
+  background: var(--paper); color: var(--board);
+}
+.segmented--sport .seg input:checked + span:hover { color: var(--board); }
+
+.masthead__sub {
+  margin: 0 0 4px;
+  max-width: 46ch;
+  color: var(--frost);
+  font-size: 14.5px;
+}
+
+/* Tally: the mono face carries all counted things, consistently. */
+.tally { display: flex; gap: 26px; margin: 0; }
+.tally__item dt {
+  font-family: var(--display);
+  font-weight: 700; font-stretch: 118%;
+  font-size: 9.5px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--frost);
+  margin-bottom: 3px;
+}
+.tally__item dd {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 25px; font-weight: 500;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  display: flex; align-items: baseline; gap: 6px;
+}
+.tally__of { font-size: 11px; color: var(--frost); }
+.tally__item--d1 dd { color: var(--crease); }
+.tally__item--d2 dd { color: #e6a94d; }
+.tally__item--d3 dd { color: #ef7c8c; }
+.tally__item--acha dd { color: var(--achaline); }
+
+/* ── Shell ────────────────────────────────────────────────────────────── */
+
+.shell {
+  display: grid;
+  grid-template-columns: var(--rail-w) minmax(0, 1fr) var(--detail-w);
+  gap: 1px;
+  background: rgba(155, 174, 194, .22);
+  /* No min-height: the map is width-constrained, so forcing the row taller only
+     adds blank ice above and below it. The rail is the tallest thing here and
+     sets the height naturally. */
+  align-items: stretch;
+}
+
+.eyebrow {
+  font-family: var(--display);
+  font-weight: 700; font-stretch: 118%;
+  font-size: 9.5px; letter-spacing: .14em; text-transform: uppercase;
+  color: #5d7183;
+  display: block;
+}
+
+/* ── Rail (filters) ──────────────────────────────────────────────────── */
+
+.rail { background: var(--paper); }
+.rail__body { padding: 20px 18px 26px; }
+.rail__toggle { display: none; }
+
+.group { border: 0; margin: 0 0 22px; padding: 0; }
+.group > .eyebrow, .group > legend { margin-bottom: 9px; padding: 0; }
+
+/* Program selector: the first choice on the page, so it reads as a decision
+   rather than another filter row. */
+.group--gender { padding-bottom: 18px; border-bottom: 1px solid var(--ice-deep); }
+
+.segmented {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  padding: 2px;
+  background: var(--ice);
+  border-radius: 2px;
+}
+.seg { position: relative; }
+.seg input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+.seg span {
+  display: block; text-align: center;
+  padding: 8px 0;
+  font-family: var(--mono); font-size: 11.5px;
+  color: #6b7987; border-radius: 2px;
+  transition: all .14s var(--ease);
+  cursor: pointer;
+}
+.seg input:checked + span {
+  background: var(--board); color: #fff;
+  box-shadow: 0 1px 3px rgba(14, 27, 42, .18);
+}
+.seg input:focus-visible + span { outline: 2px solid var(--blueline); outline-offset: 1px; }
+.seg span:hover { color: var(--board); }
+.seg input:checked + span:hover { color: #fff; }
+.seg.is-disabled span { opacity: .38; cursor: not-allowed; }
+.seg.is-disabled span:hover { color: #6b7987; }
+
+.group__note {
+  margin: 8px 0 0;
+  font-size: 11.5px; color: #8b98a5;
+}
+.group__note[hidden] { display: none; }
+
+/* Gender badge in the list, shown only when both are displayed together. */
+.gtag {
+  display: inline-block; margin-left: 5px;
+  padding: 0 4px; border-radius: 2px;
+  font-family: var(--mono); font-size: 9.5px; font-weight: 500;
+  border: 1px solid currentColor;
+}
+.gtag--men { color: var(--blueline); }
+.gtag--women { color: #8a4fbd; }
+
+.pills { display: flex; gap: 7px; }
+.pill { position: relative; flex: 1; }
+.pill input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+.pill span {
+  display: block; text-align: center;
+  padding: 9px 0;
+  font-family: var(--mono); font-size: 13px; font-weight: 500;
+  border: 1px solid var(--frost-dim); border-radius: 2px;
+  background: #fff; color: #7c8b99;
+  transition: all .14s var(--ease);
+}
+.pill--d1 input:checked + span { background: var(--blueline); border-color: var(--blueline); color: #fff; }
+.pill--d2 input:checked + span { background: var(--d2line); border-color: var(--d2line); color: #fff; }
+.pill--d3 input:checked + span { background: var(--redline); border-color: var(--redline); color: #fff; }
+.pill--ncaa input:checked + span { background: var(--blueline); border-color: var(--blueline); color: #fff; }
+.pill--acha input:checked + span { background: var(--achaline); border-color: var(--achaline); color: #fff; }
+.pill input:focus-visible + span { outline: 2px solid var(--board); outline-offset: 2px; }
+.pill span:hover { border-color: var(--board); }
+
+.checks { display: grid; gap: 1px; }
+/* 17 conferences don't fit; the mask makes the cut edge read as "more below"
+   rather than as the end of the list. */
+.checks--scroll {
+  max-height: 268px;
+  overflow-y: auto;
+  padding-right: 4px;
+  scrollbar-width: thin;
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 22px), transparent);
+}
+.checks--scroll:hover { mask-image: none; }
+.check {
+  display: flex; align-items: center; gap: 8px;
+  padding: 4px 2px; cursor: pointer; border-radius: 2px;
+}
+.check:hover { background: var(--ice); }
+.check input { accent-color: var(--blueline); margin: 0; width: 14px; height: 14px; }
+.check__label { font-size: 13.5px; }
+.check__n {
+  margin-left: auto;
+  font-family: var(--mono); font-size: 11px;
+  color: #8b98a5; font-variant-numeric: tabular-nums;
+}
+
+.chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.chip { position: relative; }
+.chip input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+.chip span {
+  display: block;
+  padding: 5px 10px;
+  font-size: 12px;
+  border: 1px solid var(--frost-dim); border-radius: 100px;
+  background: #fff; color: #5d7183;
+  transition: all .14s var(--ease);
+}
+.chip input:checked + span { background: var(--board); border-color: var(--board); color: #fff; }
+.chip input:focus-visible + span { outline: 2px solid var(--board); outline-offset: 2px; }
+.chip span:hover { border-color: var(--board); }
+
+.search {
+  width: 100%; padding: 9px 11px;
+  border: 1px solid var(--frost-dim); border-radius: 2px;
+  background: #fff;
+}
+.search:focus-visible { outline: 2px solid var(--blueline); outline-offset: -1px; border-color: var(--blueline); }
+
+.reset {
+  width: 100%; padding: 9px;
+  background: none; border: 1px solid var(--frost-dim); border-radius: 2px;
+  color: #5d7183; font-size: 13px; cursor: pointer;
+  transition: all .14s var(--ease);
+}
+.reset:hover { border-color: var(--redline); color: var(--redline); }
+
+/* ── Stage (map + list) ─────────────────────────────────────────────── */
+
+.stage { background: var(--paper); display: flex; flex-direction: column; min-width: 0; }
+
+.stage__bar {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 14px; padding: 12px 16px;
+  border-bottom: 1px solid var(--ice-deep);
+}
+
+.views { display: flex; gap: 2px; background: var(--ice); border-radius: 2px; padding: 2px; }
+.view {
+  padding: 6px 15px; border: 0; border-radius: 2px;
+  background: none; cursor: pointer;
+  font-family: var(--mono); font-size: 12px; color: #6b7987;
+  transition: all .14s var(--ease);
+}
+.view.is-on { background: #fff; color: var(--board); box-shadow: 0 1px 3px rgba(14, 27, 42, .1); }
+.view:focus-visible { outline: 2px solid var(--blueline); outline-offset: 1px; }
+
+.stage__tools { display: flex; align-items: center; gap: 12px; }
+.sort { display: flex; align-items: center; gap: 7px; }
+.sort select {
+  padding: 5px 8px; border: 1px solid var(--frost-dim); border-radius: 2px;
+  background: #fff; font-size: 13px; cursor: pointer;
+}
+.sort select:focus-visible { outline: 2px solid var(--blueline); outline-offset: -1px; }
+
+.zoomreset {
+  padding: 5px 11px; border: 1px solid var(--frost-dim); border-radius: 2px;
+  background: #fff; font-family: var(--mono); font-size: 11.5px;
+  cursor: pointer; color: #5d7183;
+}
+.zoomreset:hover { border-color: var(--board); color: var(--board); }
+
+.view-panel { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.view-panel[hidden] { display: none; }
+
+/* ── The ice ─────────────────────────────────────────────────────────── */
+
+.mapwrap {
+  position: relative;
+  flex: 1;
+  background: var(--ice);
+  overflow: hidden;
+  display: flex;
+  align-items: flex-start;
+  /* The tile map fills its container rather than sizing to an aspect ratio, so
+     the panel needs a real height of its own. Capped: a very tall viewport would
+     otherwise force a zoom wide enough to show South America. */
+  min-height: min(72vh, 640px);
+  max-height: 760px;
+}
+/* The viewBox is much wider than it is tall. Capping height at that ratio stops
+   the SVG from letterboxing itself inside a near-square container — without it,
+   roughly 40% of the panel renders as blank ice. */
+#map {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 100%;
+  aspect-ratio: 975 / 550;
+  touch-action: none;
+  cursor: grab;
+}
+#map.is-panning { cursor: grabbing; }
+
+.state {
+  fill: #fff;
+  stroke: var(--frost-dim);
+  stroke-width: .6;
+  vector-effect: non-scaling-stroke;
+  transition: fill .16s var(--ease);
+}
+.state--scratched { fill: url(#scratch); pointer-events: none; }
+.state:hover { fill: #f4f8fc; }
+.state.is-fitted { fill: #eaf1f9; }
+
+/* Signature: every program is a faceoff circle — dot inside a ring. */
+.mark { cursor: pointer; }
+.mark__ring {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.1;
+  opacity: .5;
+  transition: r .18s var(--ease), opacity .18s var(--ease), stroke-width .18s var(--ease);
+}
+.mark__dot {
+  fill: currentColor;
+  transition: r .18s var(--ease);
+}
+.mark--d1 { color: var(--blueline); }
+.mark--d2 { color: var(--d2line); }
+.mark--d3 { color: var(--redline); }
+.mark--acha1, .mark--acha2, .mark--acha3 { color: var(--achaline); }
+
+.mark:hover .mark__ring,
+.mark:focus-visible .mark__ring { opacity: 1; stroke-width: 1.6; }
+.mark:hover .mark__dot { r: 3.4; }
+
+.mark.is-on .mark__ring { opacity: 1; stroke-width: 2; fill: currentColor; fill-opacity: .13; }
+.mark.is-on .mark__dot { r: 3.6; }
+
+.mark:focus-visible { outline: none; }
+.mark:focus-visible .mark__halo { opacity: 1; }
+.mark__halo {
+  fill: none; stroke: var(--board); stroke-width: 1.4;
+  stroke-dasharray: 2.5 2.5; opacity: 0;
+}
+
+.cluster { cursor: pointer; }
+.cluster__disc { fill: #fff; stroke: var(--board); stroke-width: 1; }
+.cluster__n {
+  font-family: var(--mono); font-size: 9px; font-weight: 500;
+  fill: var(--board); text-anchor: middle; dominant-baseline: central;
+  pointer-events: none;
+}
+.cluster:hover .cluster__disc { fill: var(--ice); }
+.cluster:focus-visible .cluster__disc { stroke-width: 2; }
+
+.maplabel {
+  font-family: var(--mono); font-size: 8px;
+  fill: #93a2b1; text-anchor: middle;
+  pointer-events: none; user-select: none;
+}
+
+/* ── Street map ───────────────────────────────────────────────────────────
+   Leaflet owns the tiles; these rules only restyle its chrome and markers so
+   the faceoff circle and the rink palette survive on top of real streets. */
+
+.leafletwrap { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; }
+.leafletwrap[hidden] { display: none; }
+
+.leaflet-container {
+  background: var(--ice);
+  font-family: var(--body);
+}
+.leaflet-control-attribution {
+  font-family: var(--mono);
+  font-size: 9.5px !important;
+  background: rgba(255, 255, 255, .82) !important;
+}
+.leaflet-bar a { border-radius: 2px !important; }
+.leaflet-control-layers {
+  border-radius: 2px !important;
+  font-size: 12.5px;
+}
+.leaflet-control-layers label { font-weight: 500; }
+/* Replace the default layers sprite with a text label — one less image to load,
+   and it says what it does. */
+.leaflet-control-layers-toggle {
+  background-image: none !important;
+  width: auto !important; height: auto !important;
+  padding: 6px 10px !important;
+  font-family: var(--mono); font-size: 11px;
+  color: var(--board);
+  border-radius: 2px !important;
+}
+.leaflet-control-layers-toggle::after { content: "Layers"; }
+
+/* The same faceoff circle as the offline map, in HTML rather than SVG.
+   Do NOT set `position` on .lmark itself: Leaflet positions each divIcon with
+   position:absolute plus a transform, and overriding that drops every marker out
+   of the map's coordinate space — they end up scattered across the ocean.
+   The ring and dot are centred inside the icon box instead. */
+.lmark { display: block; }
+.lmark__ring,
+.lmark__dot {
+  position: absolute; top: 11px; left: 11px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  transition: all .16s var(--ease);
+}
+.lmark__ring {
+  width: 17px; height: 17px;
+  border: 1.6px solid currentColor;
+  opacity: .75;
+  background: rgba(255, 255, 255, .55);
+}
+.lmark__dot { width: 7px; height: 7px; background: currentColor; }
+
+.lmark--d1 { color: var(--blueline); }
+.lmark--d2 { color: var(--d2line); }
+.lmark--d3 { color: var(--redline); }
+.lmark--acha1, .lmark--acha2, .lmark--acha3 { color: var(--achaline); }
+/* Announced and off-roster programs read as provisional, not solid. */
+.lmark--pending .lmark__ring { border-style: dashed; }
+.lmark--pending .lmark__dot { opacity: .5; }
+
+.lmark:hover .lmark__ring { width: 23px; height: 23px; opacity: 1; }
+.lmark.is-on .lmark__ring {
+  width: 26px; height: 26px; opacity: 1;
+  border-width: 2.5px;
+  background: color-mix(in srgb, currentColor 22%, white);
+}
+.lmark.is-on .lmark__dot { width: 9px; height: 9px; }
+.lmark:focus-visible { outline: 2px solid var(--board); outline-offset: 3px; border-radius: 50%; }
+
+.lmark-cluster {
+  display: grid; place-items: center;
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .93);
+  font-family: var(--mono); font-size: 11.5px; font-weight: 500;
+  box-shadow: 0 1px 4px rgba(14, 27, 42, .28);
+}
+.lmark-cluster--d1 { border: 2px solid var(--blueline); color: var(--blueline); }
+.lmark-cluster--d2 { border: 2px solid var(--d2line); color: var(--d2line); }
+.lmark-cluster--d3 { border: 2px solid var(--redline); color: var(--redline); }
+.lmark-cluster--acha1, .lmark-cluster--acha2, .lmark-cluster--acha3 { border: 2px solid var(--achaline); color: var(--achaline); }
+
+/* Logo markers: shown once you zoom past the cluster threshold, where markers
+   are individual and large enough for a crest to read. The division colour is
+   kept as the ring so blue=D1 / red=D3 still carries at a glance. */
+.lmark--logo { width: 34px; height: 34px; }
+.lmark__img {
+  width: 34px; height: 34px;
+  object-fit: contain;
+  background: rgba(255, 255, 255, .92);
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  padding: 2px;
+  box-shadow: 0 1px 3px rgba(14, 27, 42, .25);
+  transition: transform .16s var(--ease);
+}
+.lmark--logo:hover .lmark__img { transform: scale(1.14); }
+.lmark--logo.is-on .lmark__img {
+  border-width: 3px;
+  box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 28%, white), 0 1px 4px rgba(14, 27, 42, .3);
+}
+.lmark--logo.lmark--pending .lmark__img { border-style: dashed; opacity: .82; }
+
+/* Hover tooltip carrying the crest + name + division/conference. */
+.leaflet-tooltip.logo-tip-wrap {
+  background: var(--paper);
+  border: 1px solid var(--frost-dim);
+  border-radius: 8px;
+  padding: 6px 9px;
+  box-shadow: 0 2px 12px rgba(14, 27, 42, .2);
+  font-family: var(--body);
+}
+.leaflet-tooltip.logo-tip-wrap::before { border-top-color: var(--frost-dim); }
+.logo-tip { display: flex; align-items: center; gap: 9px; }
+.logo-tip__img { width: 30px; height: 30px; object-fit: contain; flex-shrink: 0; }
+.logo-tip__text { display: flex; flex-direction: column; line-height: 1.25; }
+.logo-tip__text strong { font-size: 13px; color: var(--board); }
+.logo-tip__text span { font-size: 11px; color: var(--frost); }
+
+/* Interactive hover bubble: the same card as the tooltip, but a real popup so it
+   can hold a clickable "Zoom here" button. Restyle Leaflet's default popup chrome
+   to match the tooltip's paper card. */
+.leaflet-popup.logo-pop-wrap .leaflet-popup-content-wrapper {
+  background: var(--paper);
+  border: 1px solid var(--frost-dim);
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(14, 27, 42, .2);
+}
+.leaflet-popup.logo-pop-wrap .leaflet-popup-content { margin: 8px 10px; font-family: var(--body); }
+.leaflet-popup.logo-pop-wrap .leaflet-popup-tip { background: var(--paper); }
+.logo-pop { display: flex; flex-direction: column; gap: 9px; }
+.logo-pop__zoom {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  font-family: var(--body); font-size: 11.5px; font-weight: 600; letter-spacing: .01em;
+  color: #fff; background: var(--blueline);
+  border: 0; border-radius: 999px;
+  padding: 7px 13px; cursor: pointer; width: 100%;
+  box-shadow: 0 1px 2px rgba(31, 79, 168, .35);
+  transition: filter .12s ease, box-shadow .12s ease, transform .06s ease;
+}
+.logo-pop__zoom:hover { filter: brightness(1.08); box-shadow: 0 3px 10px rgba(31, 79, 168, .4); }
+.logo-pop__zoom:active { transform: translateY(1px); box-shadow: 0 1px 2px rgba(31, 79, 168, .35); }
+.logo-pop__zoom:focus-visible { outline: 2px solid var(--blueline); outline-offset: 2px; }
+.logo-pop__ico { flex-shrink: 0; margin-top: -1px; }
+
+.offline-note {
+  position: absolute; left: 14px; bottom: 12px; margin: 0; z-index: 500;
+  font-family: var(--mono); font-size: 10.5px;
+  color: var(--redline);
+  background: rgba(255, 255, 255, .92);
+  padding: 4px 9px; border-radius: 2px;
+}
+.offline-note[hidden] { display: none; }
+
+/* Bottom-right of the ice: the map is anchored top-left and the south-east
+   corner of the frame is open water, so the hint never covers a marker. */
+.maphint {
+  position: absolute; right: 14px; bottom: 12px; margin: 0;
+  /* Above Leaflet's tile and marker panes. */
+  z-index: 500;
+  font-family: var(--mono); font-size: 10.5px; color: #64707c;
+  background: rgba(255, 255, 255, .92);
+  padding: 4px 9px; border-radius: 2px;
+  transition: opacity .3s var(--ease);
+  pointer-events: none;
+}
+.maphint.is-gone { opacity: 0; }
+
+/* ── List ────────────────────────────────────────────────────────────── */
+
+.tablewrap { flex: 1; overflow: auto; }
+.table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.table thead th {
+  position: sticky; top: 0; z-index: 1;
+  background: var(--paper);
+  text-align: left; padding: 0;
+  border-bottom: 1px solid var(--board);
+  white-space: nowrap;
+}
+.table thead th.th-plain {
+  padding: 10px 12px;
+  font-family: var(--display); font-weight: 700; font-stretch: 118%;
+  font-size: 9.5px; letter-spacing: .12em; text-transform: uppercase;
+  color: #5d7183;
+}
+.th-sort {
+  display: block; width: 100%; padding: 10px 12px;
+  background: none; border: none; cursor: pointer; text-align: left;
+  font-family: var(--display); font-weight: 700; font-stretch: 118%;
+  font-size: 9.5px; letter-spacing: .12em; text-transform: uppercase;
+  color: #5d7183;
+}
+.th-sort:hover { color: var(--board); }
+.th-sort:focus-visible { outline: 2px solid var(--blueline); outline-offset: -2px; }
+.th-sort.is-active { color: var(--blueline); }
+.th-sort.is-active::after { content: " ▲"; font-size: 8px; }
+.th-sort.is-active.is-desc::after { content: " ▼"; }
+.table tbody tr { border-bottom: 1px solid var(--ice-deep); cursor: pointer; }
+.table tbody tr:hover { background: var(--ice); }
+.table tbody tr.is-on { background: #e6eef8; }
+.table tbody tr:focus-visible { outline: 2px solid var(--blueline); outline-offset: -2px; }
+.table td { padding: 9px 12px; vertical-align: top; }
+.table .c-name { font-weight: 500; }
+.rowlogo { vertical-align: middle; margin-right: 6px; border-radius: 2px; }
+.table .c-mono { font-family: var(--mono); font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.table .c-known { color: #5d7183; }
+.unset { color: var(--frost); }
+
+.divtag {
+  display: inline-block; padding: 1px 6px; border-radius: 2px;
+  font-family: var(--mono); font-size: 10.5px; font-weight: 500;
+  color: #fff;
+}
+.divtag--d1 { background: var(--blueline); }
+.divtag--d2 { background: var(--d2line); }
+.divtag--d3 { background: var(--redline); }
+.divtag--acha1, .divtag--acha2, .divtag--acha3 { background: var(--achaline); }
+
+.empty { padding: 40px 20px; text-align: center; color: #5d7183; }
+.empty[hidden] { display: none; }
+.empty button {
+  background: none; border: 0; padding: 0;
+  color: var(--blueline); text-decoration: underline; cursor: pointer;
+}
+
+/* ── Detail ──────────────────────────────────────────────────────────── */
+
+.detail { background: var(--board); color: var(--paper); }
+
+.detail__idle { padding: 44px 24px; text-align: center; color: var(--frost); }
+.faceoff-art { color: rgba(127, 168, 217, .3); margin: 0 auto 18px; width: 78px; }
+.faceoff-art svg { display: block; width: 100%; }
+.detail__idle-copy { margin: 0; font-size: 13.5px; max-width: 26ch; margin-inline: auto; }
+
+.detail__card { padding: 22px 22px 30px; }
+.detail__card[hidden] { display: none; }
+
+.dcard__div {
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .06em;
+  display: inline-block; padding: 2px 7px; border-radius: 2px; color: #fff;
+  margin-bottom: 12px;
+}
+.dcard__name {
+  font-family: var(--display); font-weight: 800; font-stretch: 112%;
+  font-size: 25px; line-height: 1.06;
+  margin: 0 0 5px;
+  text-transform: uppercase; letter-spacing: .005em;
+  display: flex; align-items: center; gap: 8px;
+}
+.dcard__logo { border-radius: 3px; flex-shrink: 0; }
+.dcard__where { margin: 0 0 20px; color: var(--frost); font-size: 13.5px; }
+.dcard__where .zip { font-family: var(--mono); font-size: 12px; }
+
+/* A program that isn't playing is a different kind of thing from one that is —
+   the card says so before you read the conference. */
+.dcard__flag {
+  margin: 0 0 16px;
+  padding: 8px 11px;
+  border-left: 2px solid;
+  font-size: 12.5px;
+  background: rgba(155, 174, 194, .08);
+}
+.dcard__flag--future { border-color: var(--crease); color: var(--crease); }
+.dcard__flag--unlisted { border-color: #ef7c8c; color: #ef7c8c; }
+
+/* Cross-sport note: this campus also fields the other sport on the map. */
+.dcard__also {
+  margin: 0 0 16px;
+  font-size: 12.5px;
+  color: var(--frost);
+}
+.dcard__also strong { color: var(--paper); font-weight: 600; }
+
+.rowflag {
+  font-family: var(--mono); font-size: 10px;
+  color: #8b98a5; white-space: nowrap;
+}
+
+.dcard__rows { display: grid; gap: 0; margin: 0 0 20px; border-top: 1px solid rgba(155, 174, 194, .2); }
+.drow {
+  display: grid; grid-template-columns: 84px minmax(0, 1fr);
+  gap: 12px; padding: 9px 0;
+  border-bottom: 1px solid rgba(155, 174, 194, .2);
+  align-items: baseline;
+}
+.drow__k {
+  font-family: var(--display); font-weight: 700; font-stretch: 118%;
+  font-size: 9px; letter-spacing: .13em; text-transform: uppercase;
+  color: var(--frost);
+}
+.drow__v { font-size: 13.5px; }
+.drow__v.mono { font-family: var(--mono); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.drow__v .unset { color: #6b7d90; }
+.hint { display: block; font-size: 11px; color: #6b7d90; margin-top: 2px; }
+
+.dcard__tags { display: flex; flex-wrap: wrap; gap: 5px; }
+.dcard__tags span {
+  font-size: 11.5px; padding: 3px 9px; border-radius: 100px;
+  border: 1px solid rgba(155, 174, 194, .35); color: var(--frost);
+}
+
+.dcard__links { display: grid; gap: 7px; }
+.dlink {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; padding: 11px 14px;
+  background: var(--board-soft);
+  border: 1px solid rgba(155, 174, 194, .22); border-radius: 2px;
+  color: var(--paper); text-decoration: none;
+  font-size: 13.5px;
+  transition: all .14s var(--ease);
+}
+.dlink:hover { background: var(--blueline); border-color: var(--blueline); }
+.dlink:focus-visible { outline: 2px solid var(--crease); outline-offset: 2px; }
+.dlink__arrow { font-family: var(--mono); color: var(--crease); }
+.dlink:hover .dlink__arrow { color: #fff; }
+
+.dclose {
+  margin-top: 16px; width: 100%; padding: 8px;
+  background: none; border: 1px solid rgba(155, 174, 194, .28); border-radius: 2px;
+  color: var(--frost); font-size: 12.5px; cursor: pointer;
+}
+.dclose:hover { border-color: var(--frost); color: var(--paper); }
+
+/* ── Foot ────────────────────────────────────────────────────────────── */
+
+.foot {
+  background: var(--board); color: #6b7d90;
+  padding: 16px var(--gap) 26px;
+  border-top: 1px solid rgba(155, 174, 194, .22);
+  font-size: 12px;
+}
+.foot p { margin: 0; }
+
+/* ── Load sequence: states settle, then markers drop onto the ice ─────── */
+
+@keyframes ice-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes mark-in {
+  from { opacity: 0; transform: translateY(-7px) scale(.6); }
+  to   { opacity: 1; transform: none; }
+}
+
+.is-booting #layer-states { animation: ice-in .5s var(--ease) both; }
+.is-booting .mark {
+  animation: mark-in .34s var(--ease) both;
+  animation-delay: var(--d, 0ms);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────── */
+
+@media (max-width: 1080px) {
+  :root { --rail-w: 200px; --detail-w: 272px; }
+  .masthead { grid-template-columns: 1fr; align-items: start; }
+  .tally { flex-wrap: wrap; }
+}
+
+@media (max-width: 860px) {
+  .shell { grid-template-columns: 1fr; }
+
+  .rail__toggle {
+    display: flex; align-items: center; justify-content: space-between;
+    width: 100%; padding: 13px 16px;
+    background: var(--paper); border: 0;
+    border-bottom: 1px solid var(--ice-deep);
+    font-family: var(--display); font-weight: 700; font-stretch: 118%;
+    font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+    cursor: pointer;
+  }
+  .rail__toggle-count { font-family: var(--mono); font-size: 11px; color: #7c8b99; letter-spacing: 0; }
+  /* Closed by default so the map is the first thing on screen. */
+  .rail__body { display: none; }
+  .rail[data-open="true"] .rail__body { display: block; }
+
+  .mapwrap { max-height: none; }
+
+  /* Single column: the detail card follows the map in normal flow. Sticky
+     positioning here would lift it out of its grid row and interleave it with
+     the filter rail. */
+  .detail { position: static; }
+  /* The idle prompt earns its space beside the map on desktop; stacked on a
+     phone it is just an empty panel, so it collapses until a school is picked. */
+  .detail:has(#detail-idle:not([hidden])) { display: none; }
+  .detail__idle { display: none; }
+
+  .faceoff-art { width: 46px; margin-bottom: 10px; }
+  .checks--scroll { max-height: 170px; }
+}
+
+@media (max-width: 560px) {
+  .wordmark { font-size: 30px; }
+  .masthead { padding: 22px 14px 18px; }
+  .stage__bar { flex-wrap: wrap; }
+  .table .c-known { display: none; }
+  .tally__item dd { font-size: 20px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: .001ms !important;
+  }
+}
